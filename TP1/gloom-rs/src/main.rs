@@ -60,13 +60,15 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
 
     // This should:
     // * Generate a VAO and bind it
-    let mut vao_id: u32 = 0;
+    let mut vao_id = 0;
     gl::GenVertexArrays(1, &mut vao_id);
     gl::BindVertexArray(vao_id);
+
     // * Generate a VBO and bind it
-    let mut vbo_id: u32 = 0;
+    let mut vbo_id = 0;
     gl::GenBuffers(1, &mut vbo_id);
     gl::BindBuffer(gl::ARRAY_BUFFER, vbo_id);
+
     // * Fill it with data
     gl::BufferData(
         gl::ARRAY_BUFFER,
@@ -76,19 +78,18 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
     );
 
     // * Configure a VAP for the data and enable it
-
     gl::VertexAttribPointer(
-        0,                          // attribute index
-        3,                          // number of components per vertex (x, y, z)
-        gl::FLOAT,                  // data type
-        gl::FALSE,                  // normalized
-        3 * size_of::<f32>(),       // stride
-        ptr::null(),                // offset
+        0,
+        3,
+        gl::FLOAT,
+        gl::FALSE,
+        0,
+        std::ptr::null()
     );
     gl::EnableVertexAttribArray(0);
 
     // * Generate a IBO and bind it
-    let mut ibo_id: u32 = 0;
+    let mut ibo_id = 0;
     gl::GenBuffers(1, &mut ibo_id);
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo_id);
 
@@ -100,8 +101,8 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
         gl::STATIC_DRAW,
     );
 
-    // * Return the ID of the VAO
     gl::BindVertexArray(0);
+    // * Return the ID of the VAO
     vao_id
 }
 
@@ -167,6 +168,7 @@ fn main() {
 
         // == // Set up your VAO around here
         let vertices: Vec<f32> = vec![
+            /*
             // Triangle 1 (top center)
             0.0, 0.5, 0.0,
             -0.2, 0.3, 0.0,
@@ -191,6 +193,10 @@ fn main() {
             0.3, -0.3, 0.0,
             0.1, -0.7, 0.0,
             0.5, -0.7, 0.0,
+            */
+            0.6, -0.8, -1.2,
+            0.0, 0.4, 0.0,
+            -1.0, -0.2, 1.4,
         ];
 
         // Define indices for the triangles
@@ -293,32 +299,24 @@ fn main() {
 
             // == // Please compute camera transforms here (exercise 2 & 3)
 
-
             unsafe {
                 // Clear the color and depth buffers
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-
                 // == // Issue the necessary gl:: commands to draw your scene here
-                 // Activate the shader
                 simple_shader.activate();
 
-                // Bind the VAO
                 gl::BindVertexArray(my_vao);
 
-                // Draw the triangles using the indices
                 gl::DrawElements(
                     gl::TRIANGLES,
                     indices.len() as i32,
                     gl::UNSIGNED_INT,
                     ptr::null(),
                 );
-
-                // Unbind VAO (good practice)
+                
                 gl::BindVertexArray(0);
-
-
 
             }
 
