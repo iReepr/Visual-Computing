@@ -242,7 +242,12 @@ fn main() {
                 .link()
         };
 
+        let mirror_matrix: glm::Mat4 = glm::scaling(&glm::vec3(-1.0, -1.0, 1.0));
 
+
+        let mirror_loc = unsafe {
+            gl::GetUniformLocation(simple_shader.program_id, b"mirrorMatrix\0".as_ptr() as *const i8)
+        };
         // Used to demonstrate keyboard handling for exercise 2.
         let mut _arbitrary_number = 0.0; // feel free to remove
 
@@ -308,6 +313,8 @@ fn main() {
                 simple_shader.activate();
 
                 gl::BindVertexArray(my_vao);
+
+                gl::UniformMatrix4fv(mirror_loc, 1, gl::FALSE, mirror_matrix.as_ptr());
 
                 gl::DrawElements(
                     gl::TRIANGLES,
