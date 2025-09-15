@@ -240,48 +240,48 @@ fn main() {
                 0.0, 0.0, 1.0, 1.0,
          ];
 
-         // Positions (x, y, z) pour 3 triangles
-let vertices: Vec<f32> = vec![
-    // Triangle 1 (loin, z = 0.5)
-    -0.6, -0.6, 0.5,
-     0.6, -0.6, 0.5,
-     0.0,  0.6, 0.5,
+        // Task 2
+        let vertices: Vec<f32> = vec![
+            // Triangle 1
+            -0.6, -0.6, 0.5,
+            0.6, -0.6, 0.5,
+            0.0,  0.6, 0.5,
 
-    // Triangle 2 (milieu, z = 0.0)
-    -0.5, -0.5, 0.0,
-     0.7, -0.5, 0.0,
-     0.1,  0.7, 0.0,
+            // Triangle 2
+            -0.5, -0.5, 0.0,
+            0.7, -0.5, 0.0,
+            0.1,  0.7, 0.0,
 
-    // Triangle 3 (proche, z = -0.5)
-    -0.4, -0.4, -0.5,
-     0.8, -0.4, -0.5,
-     0.2,  0.8, -0.5,
-];
+            // Triangle 3
+            -0.4, -0.4, -0.5,
+            0.8, -0.4, -0.5,
+            0.2,  0.8, -0.5,
+        ];
 
 
-let indices: Vec<u32> = vec![
-    0, 1, 2,  // Triangle 1
-    3, 4, 5,  // Triangle 2
-    6, 7, 8,  // Triangle 3
-];
+        let indices: Vec<u32> = vec![
+            0, 1, 2,  // Triangle 1
+            3, 4, 5,  // Triangle 2
+            6, 7, 8,  // Triangle 3
+        ];
 
-// Couleurs (RGBA, alpha < 1)
-let colors: Vec<f32> = vec![
-    // Triangle 1 (rouge semi-transparent)
-    1.0, 0.0, 0.0, 0.5,
-    1.0, 0.0, 0.0, 0.5,
-    1.0, 0.0, 0.0, 0.5,
 
-    // Triangle 2 (vert semi-transparent)
-    0.0, 1.0, 0.0, 0.5,
-    0.0, 1.0, 0.0, 0.5,
-    0.0, 1.0, 0.0, 0.5,
+        let colors: Vec<f32> = vec![
+            // Triangle 1 (red)
+            1.0, 0.0, 0.0, 0.5,
+            1.0, 0.0, 0.0, 0.5,
+            1.0, 0.0, 0.0, 0.5,
 
-    // Triangle 3 (bleu semi-transparent)
-    0.0, 0.0, 1.0, 0.5,
-    0.0, 0.0, 1.0, 0.5,
-    0.0, 0.0, 1.0, 0.5,
-];
+            // Triangle 2 (green)
+            0.0, 1.0, 0.0, 0.5,
+            0.0, 1.0, 0.0, 0.5,
+            0.0, 1.0, 0.0, 0.5,
+
+            // Triangle 3 (blue)
+            0.0, 0.0, 1.0, 0.5,
+            0.0, 0.0, 1.0, 0.5,
+            0.0, 0.0, 1.0, 0.5,
+        ];
 
 
         let my_vao = unsafe { create_vao(&vertices, &indices, &colors) };
@@ -313,17 +313,13 @@ let colors: Vec<f32> = vec![
                 .link()
         };
 
-        let mirror_matrix: glm::Mat4 = glm::scaling(&glm::vec3(-1.0, -1.0, 1.0));
 
+        let mut x: f32 = 0.0;
+        let mut y: f32 = 0.0;
+        let mut z: f32 = 5.0;
 
-        let mirror_loc = unsafe {
-            gl::GetUniformLocation(simple_shader.program_id, b"mirrorMatrix\0".as_ptr() as *const i8)
-        };
-
-        let square_size_loc = unsafe { 
-            gl::GetUniformLocation(simple_shader.program_id, b"squareSize\0".as_ptr() as *const i8) 
-        };
-
+        let mut yaw: f32 = 0.0; 
+        let mut pitch: f32 = 0.0;
 
         // Used to demonstrate keyboard handling for exercise 2.
         let mut _arbitrary_number = 0.0; // feel free to remove
@@ -356,14 +352,20 @@ let colors: Vec<f32> = vec![
                     match key {
                         // The `VirtualKeyCode` enum is defined here:
                         //    https://docs.rs/winit/0.25.0/winit/event/enum.VirtualKeyCode.html
+                        
+                        // Movement (WASD + Space/LShift)
+                        VirtualKeyCode::W => z -= 5.0 * delta_time,
+                        VirtualKeyCode::S => z += 5.0 * delta_time,
+                        VirtualKeyCode::A => x -= 5.0 * delta_time,
+                        VirtualKeyCode::D => x += 5.0 * delta_time,
+                        VirtualKeyCode::Space => y += 5.0 * delta_time,
+                        VirtualKeyCode::LShift => y -= 5.0 * delta_time,
 
-                        VirtualKeyCode::A => {
-                            _arbitrary_number += delta_time;
-                        }
-                        VirtualKeyCode::D => {
-                            _arbitrary_number -= delta_time;
-                        }
-
+                        // Rotations
+                        VirtualKeyCode::Up => pitch += 30.0 * delta_time,
+                        VirtualKeyCode::Down => pitch -= 30.0 * delta_time,
+                        VirtualKeyCode::Left => yaw += 30.0 * delta_time,
+                        VirtualKeyCode::Right => yaw -= 30.0 * delta_time,
 
                         // default handler:
                         _ => { }
@@ -380,22 +382,67 @@ let colors: Vec<f32> = vec![
             }
 
             // == // Please compute camera transforms here (exercise 2 & 3)
+            
 
+            /*
+            let translation : glm::Mat4 = glm::translation(&glm::vec3(0.0, 0.0, -5.0));
+            let transform: glm::Mat4 = projection * translation;
+            */
+
+            let transform_loc = unsafe {
+                gl::GetUniformLocation(simple_shader.program_id, b"transform_matrix\0".as_ptr() as *const i8)
+            };
+
+            let projection: glm::Mat4 = glm::perspective(
+                window_aspect_ratio,
+                45.0_f32.to_radians(),
+                1.0,
+                100.0,
+            );
+
+            let scale = glm::scaling(&glm::vec3(2.0, 2.0, 2.0));           
+
+            let translation = glm::translation(&glm::vec3(-x, -y, -z));
+           
+            let rot_x = glm::rotation(pitch.to_radians(), &glm::vec3(1.0, 0.0, 0.0));
+            let rot_y = glm::rotation(yaw.to_radians(), &glm::vec3(0.0, 1.0, 0.0));
+            let rotation = rot_y * rot_x;
+         
+            let transform = projection * rotation * translation * scale;
+
+         
             unsafe {
                 // Clear the color and depth buffers
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
                 // == // Issue the necessary gl:: commands to draw your scene here
+                let oscillation = elapsed.sin(); 
                 simple_shader.activate();
-
+                
                 gl::BindVertexArray(my_vao);
 
-                // Mirror matrix
-                gl::UniformMatrix4fv(mirror_loc, 1, gl::FALSE, mirror_matrix.as_ptr());
 
-                // Bonus Checkboard: 20 pixels per square
-                gl::Uniform1f(square_size_loc, 20.0); 
+                gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
+
+                // Task 3: The Affine Transformation Matrix 
+                /*
+                unsafe {
+                    let a_loc = gl::GetUniformLocation(simple_shader.program_id, b"a\0".as_ptr() as *const i8);
+                    let b_loc = gl::GetUniformLocation(simple_shader.program_id, b"b\0".as_ptr() as *const i8);
+                    let c_loc = gl::GetUniformLocation(simple_shader.program_id, b"c\0".as_ptr() as *const i8);
+                    let d_loc = gl::GetUniformLocation(simple_shader.program_id, b"d\0".as_ptr() as *const i8);
+                    let e_loc = gl::GetUniformLocation(simple_shader.program_id, b"e\0".as_ptr() as *const i8);
+                    let f_loc = gl::GetUniformLocation(simple_shader.program_id, b"f\0".as_ptr() as *const i8);
+
+                    gl::Uniform1f(a_loc, 1.0);
+                    gl::Uniform1f(b_loc, 0.0);
+                    gl::Uniform1f(c_loc, 0.0);
+                    gl::Uniform1f(d_loc, 0.0);
+                    gl::Uniform1f(e_loc, 1.0);
+                    gl::Uniform1f(f_loc, 0.0 + oscillation);
+                }
+                */
 
                 gl::DrawElements(
                     gl::TRIANGLES,
