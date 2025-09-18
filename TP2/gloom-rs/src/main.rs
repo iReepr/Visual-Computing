@@ -214,6 +214,8 @@ fn main() {
         ];
 
         // Define indices for the triangles
+        // Task 1
+        /*
         let indices: Vec<u32> = vec![
             // Triangle 1
             0, 1, 2,
@@ -224,22 +226,22 @@ fn main() {
         ];
 
         let colors: Vec<f32> = vec![
-                // Triangle 1 (Red)
-                1.0, 0.0, 0.0, 1.0,
-                1.0, 0.0, 0.0, 1.0,
-                1.0, 0.0, 0.0, 1.0,
+                // Triangle 1
+                1.0, 0.0, 0.0, 1.0,    // Red
+                0.0, 1.0, 0.0, 1.0,    // Green
+                0.0, 0.0, 1.0, 1.0,    // Blue
 
-                // Triangle 2 (Green)
-                0.0, 1.0, 0.0, 1.0,
-                0.0, 1.0, 0.0, 1.0,
-                0.0, 1.0, 0.0, 1.0,
+                // Triangle 2
+                1.0, 1.0, 0.0, 1.0,    // Yellow
+                1.0, 0.0, 1.0, 1.0,    // Magenta
+                0.0, 1.0, 1.0, 1.0,    // Cyan
 
-                // Triangle 3 (Blue)
-                0.0, 0.0, 1.0, 1.0,
-                0.0, 0.0, 1.0, 1.0,
-                0.0, 0.0, 1.0, 1.0,
+                // Triangle 3 
+                1.0, 0.5, 0.0, 1.0,    // Orange
+                0.5, 0.0, 1.0, 1.0,    // Violet
+                1.0, 0.4, 0.7, 1.0,    // Pink
          ];
-
+        */
         // Task 2
         let vertices: Vec<f32> = vec![
             // Triangle 1
@@ -282,7 +284,7 @@ fn main() {
             0.0, 0.0, 1.0, 0.5,
             0.0, 0.0, 1.0, 0.5,
         ];
-
+        
 
         let my_vao = unsafe { create_vao(&vertices, &indices, &colors) };
 
@@ -382,8 +384,6 @@ fn main() {
             }
 
             // == // Please compute camera transforms here (exercise 2 & 3)
-            
-
             /*
             let translation : glm::Mat4 = glm::translation(&glm::vec3(0.0, 0.0, -5.0));
             let transform: glm::Mat4 = projection * translation;
