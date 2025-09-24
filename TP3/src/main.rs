@@ -291,11 +291,6 @@ fn main() {
         body_node.reference_point = glm::vec3(0.0, 0.0, 0.0);
         door_node.reference_point = glm::vec3(0.0, 0.0, 0.0);
 
-        body_node.position = glm::vec3(0.0, 2.0, 0.0); // monte le corps du helico
-        main_rotor_node.rotation.y = 90.0; // tourne le rotor principal
-
-
-
         scene_root.print();
         helicopter_root_node.print();
 
