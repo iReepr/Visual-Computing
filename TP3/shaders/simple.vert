@@ -8,11 +8,13 @@ out vec4 fragColor;
 out vec3 fragNormal;
 
 uniform mat4 mvp;
+uniform mat4 model;
 
 void main()
 {
 
      gl_Position = mvp * vec4(position, 1.0f);
      fragColor = color;
-     fragNormal = normal;
+     // fragNormal = normal;
+     fragNormal = normalize(mat3(model) * normal);
 }

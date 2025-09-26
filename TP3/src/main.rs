@@ -16,6 +16,8 @@ mod shader;
 mod util;
 mod mesh;
 mod scene_graph;
+mod toolbox;
+
 
 use scene_graph::SceneNode;
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
@@ -174,6 +176,9 @@ unsafe fn draw_scene(
 
         let loc = gl::GetUniformLocation(shader_program, b"mvp\0".as_ptr() as *const i8);
         gl::UniformMatrix4fv(loc, 1, gl::FALSE, mvp_matrix.as_ptr());
+
+        let loc_model = gl::GetUniformLocation(shader_program, b"model\0".as_ptr() as *const i8);
+        gl::UniformMatrix4fv(loc_model, 1, gl::FALSE, model_transform.as_ptr());
 
      
         gl::BindVertexArray(node.vao_id);
@@ -386,16 +391,58 @@ fn main() {
             }
 
             // == // Please compute camera transforms here (exercise 2 & 3)
+
+            // Rotation speeds in radians per second
+           
+            const MAIN_ROTOR_SPEED: f32 = 0.5;
+            const TAIL_ROTOR_SPEED: f32 = 0.5;
+           
+            {
+                let main_rotor = helicopter_root_node.get_child(2);
+                main_rotor.rotation.y += MAIN_ROTOR_SPEED * elapsed;
+            }
+
+            {
+                let tail_rotor = helicopter_root_node.get_child(3);
+                tail_rotor.rotation.x += TAIL_ROTOR_SPEED * elapsed;
+            }
+
             /*
-            let translation : glm::Mat4 = glm::translation(&glm::vec3(0.0, 0.0, -5.0));
-            let transform: glm::Mat4 = projection * translation;
+            const BODY_ROTATION_SPEED: f32 = 30.0;
+            let body_rotation_rad = BODY_ROTATION_SPEED.to_radians();
+
+           
+            let heli_root = &mut helicopter_root_node;
+
+            // Rotation autour de l'axe Y (vertical)
+            heli_root.rotation.y += body_rotation_rad * delta_time;
+
+            
+            if heli_root.rotation.y > 360.0 {
+                heli_root.rotation.y -= 360.0;
+            }
+            */
+
+
+            // === Helicopter animated path using toolbox::simple_heading_animation ===
+            /*let heading = toolbox::simple_heading_animation(elapsed);
+
+            // Update body position
+            body_node.position.x = heading.x;
+            body_node.position.z = heading.z;
+            body_node.position.y = 0.0;
+
+            // Update body rotation (Z -> Y -> X order)
+            body_node.rotation.z = heading.yaw.to_degrees();   // yaw around Z
+            body_node.rotation.y = heading.pitch.to_degrees(); // pitch around Y
+            body_node.rotation.x = heading.roll.to_degrees();  // roll around X
             */
 
             let projection: glm::Mat4 = glm::perspective(
                 window_aspect_ratio,
                 45.0_f32.to_radians(),
                 1.0,
-                1000.0,
+                10000.0,
             );
 
             let scale = glm::scaling(&glm::vec3(1.0, 1.0, 1.0));           
