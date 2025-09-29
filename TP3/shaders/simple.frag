@@ -2,18 +2,37 @@
 
 in vec3 fragNormal; 
 in vec4 fragColor;
+in vec3 fragPos;
+
 out vec4 color;
 
 void main()
 {
+   
+    vec3 lightPos = vec3(50.0, 50.0, -10.0);
+    vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
-    vec3 lightDirection = normalize(vec3(0.8, -0.5, 0.6));
+    vec3 norm = normalize(fragNormal);
 
-    vec3 normal = normalize(fragNormal);
+    // Ambient
+    float ambientStrength = 0.1;
+    vec3 ambient = ambientStrength * lightColor;
 
-    float diffuse = max(0.0, dot(normal, -lightDirection));
-    
-    vec3 litColor = fragColor.rgb * diffuse;
+    // Diffuse
+    vec3 lightDir = normalize(lightPos - fragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * fragColor.rgb * lightColor;
 
-    color = vec4(litColor, 1.0);
+    // Specular
+    vec3 viewPos = vec3(0.0, 0.0, 5.0);
+    vec3 viewDir = normalize(viewPos - fragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);
+    float specularStrength = 0.5;
+    float shininess = 32.0;
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+    vec3 specular = specularStrength * spec * lightColor;
+
+    vec3 result = ambient + diffuse + specular;
+
+    color = vec4(result, 1.0);
 }

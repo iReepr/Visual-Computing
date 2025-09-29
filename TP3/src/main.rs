@@ -243,34 +243,12 @@ fn main() {
         }
 
         // == // Set up your VAO around here
-        let terrain = mesh::Terrain::load("resources/lunarsurface.obj");
-    
-        let terrain_vao = unsafe { create_vao(&terrain.vertices, &terrain.indices, &terrain.colors, &terrain.normals) };
-
-       
-        let helicopter = mesh::Helicopter::load("resources/helicopter.obj");
-        let heli_body_vao      = unsafe { create_vao(&helicopter.body.vertices, &helicopter.body.indices, &helicopter.body.colors, &helicopter.body.normals) };
-        let heli_door_vao      = unsafe { create_vao(&helicopter.door.vertices, &helicopter.door.indices, &helicopter.door.colors, &helicopter.door.normals) };
-        let heli_main_rotor_vao = unsafe { create_vao(&helicopter.main_rotor.vertices, &helicopter.main_rotor.indices, &helicopter.main_rotor.colors, &helicopter.main_rotor.normals) };
-        let heli_tail_rotor_vao = unsafe { create_vao(&helicopter.tail_rotor.vertices, &helicopter.tail_rotor.indices, &helicopter.tail_rotor.colors, &helicopter.tail_rotor.normals) };
-        
         // Terrain
-        let mut terrain_node = SceneNode::from_vao(terrain_vao, terrain.index_count);
-
-        // Helicopter nodes
-        let mut heli_root_node: mem::ManuallyDrop<std::pin::Pin<Box<SceneNode>>>  = SceneNode::new(); // root of the helicopter, empty node
-        let mut body_node: mem::ManuallyDrop<std::pin::Pin<Box<SceneNode>>>      = SceneNode::from_vao(heli_body_vao, helicopter.body.index_count);
-        let mut door_node: mem::ManuallyDrop<std::pin::Pin<Box<SceneNode>>>      = SceneNode::from_vao(heli_door_vao, helicopter.door.index_count);
-        let mut main_rotor_node: mem::ManuallyDrop<std::pin::Pin<Box<SceneNode>>> = SceneNode::from_vao(heli_main_rotor_vao, helicopter.main_rotor.index_count);
-        let mut tail_rotor_node: mem::ManuallyDrop<std::pin::Pin<Box<SceneNode>>> = SceneNode::from_vao(heli_tail_rotor_vao, helicopter.tail_rotor.index_count);
-
-        let mut scene_root = SceneNode::new();
-        scene_root.add_child(&terrain_node);
-
         let terrain = mesh::Terrain::load("resources/lunarsurface.obj");
         let terrain_vao = unsafe { create_vao(&terrain.vertices, &terrain.indices, &terrain.colors, &terrain.normals) };
         let mut terrain_node = SceneNode::from_vao(terrain_vao, terrain.index_count);
 
+        // Helicopter
         let helicopter = mesh::Helicopter::load("resources/helicopter.obj");
         let heli_body_vao = unsafe {
           create_vao(
@@ -345,21 +323,6 @@ fn main() {
 
 
         // == // Set up your shaders here
-
-        // Basic usage of shader helper:
-        // The example code below creates a 'shader' object.
-        // It which contains the field `.program_id` and the method `.activate()`.
-        // The `.` in the path is relative to `Cargo.toml`.
-        // This snippet is not enough to do the exercise, and will need to be modified (outside
-        // of just using the correct path), but it only needs to be called once
-
-        /*
-        let simple_shader = unsafe {
-            shader::ShaderBuilder::new()
-                .attach_file("./path/to/simple/shader.file")
-                .link()
-        };
-        */
 
         let simple_shader = unsafe {
             shader::ShaderBuilder::new()
@@ -436,7 +399,6 @@ fn main() {
             }
 
             // == // Please compute camera transforms here (exercise 2 & 3)
-
             // Animated helicopters
             const MAIN_ROTOR_SPEED: f32 = 700.0; // degrees per second
             const TAIL_ROTOR_SPEED: f32 = 1000.0; // degrees per second
@@ -464,12 +426,52 @@ fn main() {
 
                     let tail_rotor = body.get_child(2);
                     tail_rotor.rotation.x = (tail_rotor.rotation.x + TAIL_ROTOR_SPEED * delta_time) % 360.0;
-
                 }
-
             }
+            
+
+            // Chase Camera
+            // -------------------------------------------------------------------------------------------
+            let heli_root = &helicopter_root_nodes[0];
+            let heli_pos = heli_root.position;
+     
+            // Helicopter's orientation around the vertical axis in radians.
+            let heli_yaw = heli_root.rotation.y.to_radians();
+           
+            let chase_radius = 15.0;
+            let cam_height = 3.0;
+
+            // Position camera behind the helicopter using yaw
+            let cam_pos = heli_pos + glm::vec3(heli_yaw.sin(), cam_height, heli_yaw.cos()) * chase_radius;
+  
+            // target - camera
+            let forward = glm::normalize(&(heli_pos - cam_pos));
+
+            let world_up = glm::vec3(0.0, 1.0, 0.0);
+            let right = glm::normalize(&glm::cross(&forward, &world_up));
+
+            // Recompute camera up
+            let up = glm::cross(&right, &forward);
+
+            // View matrix
+            let mut view = glm::Mat4::identity();
+            view[(0,0)] = right.x;   view[(0,1)] = right.y;   view[(0,2)] = right.z;   view[(0,3)] = -glm::dot(&right, &cam_pos);
+            view[(1,0)] = up.x;      view[(1,1)] = up.y;      view[(1,2)] = up.z;      view[(1,3)] = -glm::dot(&up, &cam_pos);
+            view[(2,0)] = -forward.x; view[(2,1)] = -forward.y; view[(2,2)] = -forward.z; view[(2,3)] = glm::dot(&forward, &cam_pos);
+            view[(3,0)] = 0.0;       view[(3,1)] = 0.0;       view[(3,2)] = 0.0;       view[(3,3)] = 1.0;
 
             let projection: glm::Mat4 = glm::perspective(
+                window_aspect_ratio,
+                45.0_f32.to_radians(),
+                1.0,
+                10000.0,
+            );
+          
+            let transform = projection * view;
+            // -------------------------------------------------------------------------------------------
+
+            //  Free Camera
+            /*let projection: glm::Mat4 = glm::perspective(
                 window_aspect_ratio,
                 45.0_f32.to_radians(),
                 1.0,
@@ -485,7 +487,7 @@ fn main() {
             let rotation = rot_x * rot_y;
          
             let transform = projection * rotation * translation * scale;
-
+            */
          
             unsafe {
                 // Clear the color and depth buffers
